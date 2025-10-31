@@ -2,17 +2,21 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-# In-memory products
 products = [
     {"id": 201, "name": "Laptop", "price": 55000},
     {"id": 202, "name": "Mobile", "price": 20000}
 ]
+
 @app.route("/reset", methods=["DELETE"])
 def reset_data():
     global products
     products = []
     print("🧹 All products have been reset!")
     return jsonify({"status": "reset done"}), 200
+
+@app.route('/products', methods=['GET'])
+def get_products():
+    return jsonify(products), 200
 
 @app.route('/products/<int:product_id>', methods=['GET'])
 def get_product(product_id):
@@ -21,30 +25,18 @@ def get_product(product_id):
         return jsonify(product), 200
     return jsonify({"error": "Product not found"}), 404
 
-
-@app.route('/products', methods=['GET'])
-def get_products():
-    return jsonify(products), 200
-
 @app.route('/add_product', methods=['POST'])
 def add_product_via_gateway():
-    data = request.get_json(silent=True) or {}
+    data = request.get_json()
     name = (data.get("name") or "").strip()
     price = data.get("price")
-
     if not name or price is None:
         return jsonify({"error": "name and price required"}), 400
-
     try:
         price = float(price)
     except ValueError:
-        return jsonify({"error": "price must be a number"}), 400
-
-    new_product = {
-        "id": (products[-1]["id"] + 1) if products else 201,
-        "name": name,
-        "price": price
-    }
+        return jsonify({"error": "price must be numeric"}), 400
+    new_product = {"id": len(products) + 201, "name": name, "price": price}
     products.append(new_product)
     return jsonify(new_product), 201
 
