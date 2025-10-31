@@ -13,6 +13,12 @@ def reset_data():
     products = []
     print("🧹 All products have been reset!")
     return jsonify({"status": "reset done"}), 200
+@app.route('/products/<int:product_id>', methods=['GET'])
+def get_product(product_id):
+    product = next((p for p in products if p["id"] == product_id), None)
+    if product:
+        return jsonify(product), 200
+    return jsonify({"error": "Product not found"}), 404
 
 
 @app.route('/products', methods=['GET'])

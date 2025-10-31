@@ -24,9 +24,17 @@ def get_users():
 
 
 # --- ➕ Add New User ---
+@app.route('/users/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    user = next((u for u in users if u["id"] == user_id), None)
+    if user:
+        return jsonify(user), 200
+    return jsonify({"error": "User not found"}), 404
 @app.route('/add_user', methods=['POST'])
 def add_user():
     data = request.get_json()
+ 
+
 
     if not data or "name" not in data:
         return jsonify({"error": "Invalid input"}), 400
