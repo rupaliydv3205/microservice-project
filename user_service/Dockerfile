@@ -1,17 +1,20 @@
-# Use a lightweight Python image
+# Use a small Python image
 FROM python:3.10-slim
 
 # Set working directory
 WORKDIR /app
 
-# Copy all files to container
-COPY . .
+# Copy dependency file first (for caching)
+COPY requirements.txt .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port 5001
-EXPOSE 5001
+# Copy the rest of the app code
+COPY . .
 
-# Run the app
+# Expose Flask port
+EXPOSE 5000
+
+# Command to run app
 CMD ["python", "app.py"]
