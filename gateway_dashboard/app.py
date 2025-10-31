@@ -12,9 +12,10 @@ def reset_dashboard():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-USER_SERVICE_URL = "http://user_service:5001"
-PRODUCT_SERVICE_URL = "http://product_service:5002"
-ORDER_SERVICE_URL = "http://order_service:5004"
+USER_SERVICE_URL = "https://user-service-production.up.railway.app"
+PRODUCT_SERVICE_URL = "https://product-service-production.up.railway.app"
+ORDER_SERVICE_URL = "https://order-service-production.up.railway.app"
+
 
 @app.route('/')
 def dashboard():
