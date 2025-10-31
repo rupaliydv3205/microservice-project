@@ -216,7 +216,8 @@
       {% for product in products %}
       <tr><td>{{ product.id }}</td><td>{{ product.name }}</td><td>
   {% if product.price is not none %}
-    {{ "%.2f" | format(product.price) }}
+<td>{{ "%.2f" | format(product["price"]) }}</td>
+
   {% else %}
     N/A
   {% endif %}
