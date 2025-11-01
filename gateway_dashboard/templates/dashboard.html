@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Microservice Dashboard</title>
   <style>
     :root {
@@ -50,7 +50,6 @@
       box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
       transition: 0.3s;
     }
-
     #resetBtn:hover {
       background-color: darkred;
       box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
@@ -63,7 +62,7 @@
       text-align: center;
       padding: 15px;
       margin: 0 auto 25px;
-      max-width: 350px;
+      max-width: 400px;
       border-radius: 15px;
       font-size: 1.3em;
       border: 2px solid var(--accent);
@@ -80,6 +79,8 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: 0 0 10px var(--shadow-color);
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     input, select {
@@ -94,9 +95,7 @@
       box-shadow: inset 0 0 5px var(--shadow-color);
     }
 
-    input::placeholder {
-      color: #aaa;
-    }
+    input::placeholder { color: #aaa; }
 
     /* Buttons */
     button {
@@ -108,13 +107,12 @@
       transition: all 0.3s ease;
       color: var(--button-text);
     }
-
-    .btn-user { background-color: #007bff; }
-    .btn-user:hover { background-color: #0056b3; }
+    .btn-user    { background-color: #007bff; }
+    .btn-user:hover    { background-color: #0056b3; }
     .btn-product { background-color: #28a745; }
     .btn-product:hover { background-color: #1c7c31; }
-    .btn-order { background-color: #ffc107; color: black; }
-    .btn-order:hover { background-color: #d39e00; }
+    .btn-order   { background-color: #ffc107; color: #111; }
+    .btn-order:hover   { background-color: #d39e00; }
 
     /* Tables */
     table {
@@ -126,14 +124,12 @@
       overflow: hidden;
       box-shadow: 0 0 10px var(--shadow-color);
     }
-
     th {
       background-color: var(--table-border);
       color: var(--accent);
       padding: 10px;
       text-align: left;
     }
-
     td {
       padding: 10px;
       border-bottom: 1px solid var(--table-border);
@@ -143,7 +139,6 @@
       max-width: 900px;
       margin: 30px auto;
     }
-
     .section h2 {
       color: var(--accent);
       border-bottom: 2px solid var(--accent);
@@ -154,29 +149,33 @@
 
 <body>
   <button id="resetBtn" onclick="resetDashboard()">🔄 Reset</button>
-
   <h1>⚙️ Microservice Dashboard</h1>
 
-  <!-- 💰 Total Revenue -->
+  <!-- 💰 Total Revenue (safe calculation) -->
+  {% set ns = namespace(total=0.0) %}
+  {% for order in orders %}
+    {% set prod = (order.product if order.product is defined else (order["product"] if order["product"] is defined else {})) %}
+    {% set price_val = (
+      prod.price if prod.price is defined
+      else (prod["price"] if prod["price"] is defined else 0)
+    ) %}
+    {% set price_val = price_val | float %}
+    {% set ns.total = ns.total + price_val %}
+  {% endfor %}
   <div class="revenue-card">
-    💰 Total Revenue: ₹
-    {% set ns = namespace(total=0) %}
-    {% for order in orders %}
-      {% set ns.total = ns.total + order.product.price %}
-    {% endfor %}
-    {{ "{:,.0f}".format(ns.total) }}
+    💰 Total Revenue: ₹ {{ "{:,.2f}".format(ns.total) }}
   </div>
 
   <!-- 👥 Add User -->
   <form action="/add_user" method="POST">
-    <input type="text" name="name" placeholder="Enter user name" required>
+    <input type="text" name="name" placeholder="Enter user name" required />
     <button type="submit" class="btn-user">Add User</button>
   </form>
 
   <!-- 📦 Add Product -->
   <form action="/add_product" method="POST">
-    <input type="text" name="name" placeholder="Product name" required>
-    <input type="number" name="price" placeholder="Price" required>
+    <input type="text" name="name" placeholder="Product name" required />
+    <input type="number" step="0.01" name="price" placeholder="Price" required />
     <button type="submit" class="btn-product">Add Product</button>
   </form>
 
@@ -185,15 +184,17 @@
     <select name="user_id" required>
       <option value="">Select User</option>
       {% for user in users %}
-      <option value="{{ user.id }}">{{ user.name }}</option>
+        <option value="{{ user.id }}">{{ user.name }}</option>
       {% endfor %}
     </select>
+
     <select name="product_id" required>
       <option value="">Select Product</option>
       {% for product in products %}
-      <option value="{{ product.id }}">{{ product.name }}</option>
+        <option value="{{ product.id }}">{{ product.name }}</option>
       {% endfor %}
     </select>
+
     <button type="submit" class="btn-order">Create Order</button>
   </form>
 
@@ -203,7 +204,7 @@
     <table>
       <tr><th>ID</th><th>Name</th></tr>
       {% for user in users %}
-      <tr><td>{{ user.id }}</td><td>{{ user.name }}</td></tr>
+        <tr><td>{{ user.id }}</td><td>{{ user.name }}</td></tr>
       {% endfor %}
     </table>
   </div>
@@ -214,15 +215,13 @@
     <table>
       <tr><th>ID</th><th>Name</th><th>Price</th></tr>
       {% for product in products %}
-      <tr><td>{{ product.id }}</td><td>{{ product.name }}</td><td>
-  {% if product.price is not none %}
-<td>{{ "%.2f" | format(product["price"]) }}</td>
-
-  {% else %}
-    N/A
-  {% endif %}
-</td>
-</tr>
+        {% set p = product %}
+        {% set price_val = (p.price if p.price is defined else (p["price"] if p["price"] is defined else 0)) | float %}
+        <tr>
+          <td>{{ p.id }}</td>
+          <td>{{ p.name }}</td>
+          <td>₹{{ "{:,.2f}".format(price_val) }}</td>
+        </tr>
       {% endfor %}
     </table>
   </div>
@@ -233,12 +232,18 @@
     <table>
       <tr><th>Order ID</th><th>User</th><th>Product</th><th>Price</th></tr>
       {% for order in orders %}
-      <tr>
-        <td>{{ order.order_id }}</td>
-        <td>{{ order.user.name }}</td>
-        <td>{{ order.product.name }}</td>
-        <td>₹{{ "{:,.0f}".format(order.product.price) }}</td>
-      </tr>
+        {% set prod = (order.product if order.product is defined else (order["product"] if order["product"] is defined else {})) %}
+        {% set prod_name = (prod.name if prod.name is defined else (prod["name"] if prod["name"] is defined else prod)) %}
+        {% set price_val = (
+          prod.price if prod.price is defined
+          else (prod["price"] if prod["price"] is defined else 0)
+        ) | float %}
+        <tr>
+          <td>{{ order.order_id }}</td>
+          <td>{{ order.user.name if order.user.name is defined else (order.user["name"] if order.user["name"] is defined else "Unknown") }}</td>
+          <td>{{ prod_name }}</td>
+          <td>₹{{ "{:,.2f}".format(price_val) }}</td>
+        </tr>
       {% endfor %}
     </table>
   </div>
